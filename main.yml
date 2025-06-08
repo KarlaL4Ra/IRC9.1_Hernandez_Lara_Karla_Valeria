@@ -1,0 +1,37 @@
+- name: Instala dependencias
+  apt:
+    name:
+      - curl
+      - apt-transport-https
+      - ca-certificates
+      - software-properties-common
+    state: present
+    update_cache: yes
+
+- name: Configura el DNS temporal
+  copy:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+    force: yes
+
+- name: Instala containerd
+  shell: |
+    mkdir -p /etc/containerd
+    containerd config default > /etc/containerd/config.toml
+  notify: Restart containerd
+
+- name: Habilita y arranca containerd
+  systemd:
+    name: containerd
+    state: started
+    enabled: yes
+
+- name: Desactiva el swap
+  command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+
+- name: Quita el swap del fstab
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*swap.*)$'
+    replace: '# \1'

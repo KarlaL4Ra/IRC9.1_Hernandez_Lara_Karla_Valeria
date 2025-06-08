@@ -1,0 +1,46 @@
+---
+- name: Desafío de depuración Ansible
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Crear el usuario "Clase"
+      ansible.builtin.user:
+        name: Clase
+        state: present
+        shell: /bin/bash
+
+    - name: Instalar el paquete apache
+      ansible.builtin.yum:
+        name: httpd
+        state: present
+
+    - name: Copiar página de inicio
+      ansible.builtin.copy:
+        src: files/index.html
+        dest: /var/www/html/index.html
+        mode: '0644'
+
+    - name: Habilitar servicio web
+      ansible.builtin.service:
+        name: httpd
+        state: started
+        enabled: yes
+
+    - name: Asegurar que firewalld esté instalado
+      ansible.builtin.yum:
+        name: firewalld
+        state: present
+
+    - name: Asegurar que firewalld esté activo
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Permitir tráfico HTTP en el firewall
+      ansible.posix.firewalld:
+        service: http
+        permanent: yes
+        state: enabled
+        immediate: yes

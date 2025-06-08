@@ -1,0 +1,11 @@
+---
+- name: Instalar actualizaciones de Windows
+  hosts: windows
+  tasks:
+    - name: Instalar todas las actualizaciones disponibles
+      win_updates:
+        category_names:
+          - SecurityUpdates
+          - CriticalUpdates
+          - UpdateRollups
+        reboot: yes

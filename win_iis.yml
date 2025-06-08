@@ -1,0 +1,14 @@
+---
+- name: Instalar IIS en servidores Windows
+  hosts: windows
+  tasks:
+    - name: Instalar característica IIS
+      win_feature:
+        name: Web-Server
+        state: present
+
+    - name: Asegurar que el servicio de IIS esté iniciado
+      win_service:
+        name: W3SVC
+        start_mode: auto
+        state: started

@@ -1,0 +1,12 @@
+---
+- name: Recolectar información básica de Windows
+  hosts: windows
+  tasks:
+    - name: Obtener versión de Windows con PowerShell
+      win_shell: |
+        (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ProductName
+
+    - name: Crear carpeta en C:\datos
+      win_file:
+        path: C:\datos
+        state: directory

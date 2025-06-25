@@ -1,1 +1,105 @@
+// app-py
 
+from flask import Flask, render_template, request
+import subprocess
+
+app = Flask(__name__)
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    output = ""
+    if request.method == 'POST':
+        try:
+            cmd = ["ansible-playbook", "-i", "inventory.ini", "app/playbooks/ejemplo.yml"]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            output = result.stdout + result.stderr
+        except Exception as e:
+            output = f"Error: {e}"
+    return render_template('index.html', output=output)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+----------------------------------------------------------------
+// se debe de crear la carpeta playbooks dentro de app
+// app/playbooks/ejemplo.yml
+
+---
+- name: Playbook de ejemplo
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Mostrar mensaje
+      debug:
+        msg: "¡Hola desde Ansible!"
+----------------------------------------------------------------
+// se debe de crear la carpeta tempaltes dentro de app
+// app/templates/index.html
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Interfaz Ansible</title>
+  <style>
+    body {
+      background-color: #f2f2f2;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 60px auto;
+      padding: 30px;
+      background-color: white;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+      border-radius: 12px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    form {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    pre {
+      background-color: #f4f4f4;
+      padding: 15px;
+      border-radius: 8px;
+       white-space: pre-wrap;
+      word-break: break-word;
+      margin-top: 30px;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Ejecutar Playbook con Ansible</h1>
+    <form method="POST">
+      <button type="submit">Ejecutar Playbook</button>
+    </form>
+    <pre>{{ output }}</pre>
+  </div>
+</body>
+</html>

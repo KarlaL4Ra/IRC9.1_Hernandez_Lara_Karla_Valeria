@@ -1,0 +1,69 @@
+// DENTRO DE LA CARPETA TEMPLATES SE VAN A CREAR LOS SIG ARCHIVOS //
+
+// index.html
+
+!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=>
+  <title>Flask en Docker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      background-color: #f5f5f5;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+    h1 {
+      color: #333;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #respuesta {
+margin-top: 20px;
+      padding: 15px;
+      background-color: #e9e9e9;
+      border-radius: 5px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Flask en Docker - Ejercicio de Prueba</h1>
+<p>Esta es una aplicación Flask corriendo en un contenedor Dock>
+    <button id="btnSaludo">Solicitar saludo desde la API</button>
+    <div id="respuesta"></div>
+  </div>
+
+  <script>
+    document.getElementById('btnSaludo').addEventListener('click', >
+      try {
+        const response = await fetch('/api/saludo');
+        const data = await response.json();
+        const respuestaElement = document.getElementById('respuesta>
+respuestaElement.textContent = data.mensaje;
+        respuestaElement.style.display = 'block';
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    });
+  </script>
+</body>
+</html>

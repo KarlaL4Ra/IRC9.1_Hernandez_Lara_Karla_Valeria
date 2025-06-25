@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  flask-ansible:
+    build: .
+    container_name: flask_ansible_ui
+    ports:
+      - "5001:5000"
+    volumes:
+      - .:/app
+    environment:
+      - ANSIBLE_HOST_KEY_CHECKING=False
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1

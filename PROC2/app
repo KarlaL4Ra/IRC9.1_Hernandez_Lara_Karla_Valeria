@@ -1,0 +1,273 @@
+// CREACION DE CARPETA APP DENTRO LLEVARA LO SIG //
+
+// APP.PY
+
+from flask import Flask, render_template, request, redirect, url_for
+from pymongo import MongoClient
+import os
+from datetime import datetime
+
+app = Flask(__name__)
+
+# Configuración de MongoDB
+mongodb_host = os.environ.get('MONGODB_HOST', 'localhost')
+mongodb_port = int(os.environ.get('MONGODB_PORT', 27017))
+client = MongoClient(f'mongodb://{mongodb_host}:{mongodb_port}/')
+db = client.flask_db
+todos = db.todos
+
+@app.route('/')
+def index():
+    all_todos = list(todos.find())
+    return render_template('index.html', todos=all_todos)
+
+@app.route('/add', methods=['POST'])
+def add_todo():
+    todo_name = request.form.get('todo')
+    todo_description = request.form.get('description')
+
+    if todo_name:
+        todos.insert_one({
+            'name': todo_name,
+            'description': todo_description,
+            'completed': False,
+            'created_at': datetime.now()
+        })
+
+    return redirect(url_for('index'))
+
+@app.route('/complete/<todo_id>')
+def complete_todo(todo_id):
+    from bson.objectid import ObjectId
+    todo = todos.find_one({'_id': ObjectId(todo_id)})
+    if todo:
+        todos.update_one(
+            {'_id': ObjectId(todo_id)},
+            {'$set': {'completed': not todo.get('completed', False)}}
+        )
+    return redirect(url_for('index'))
+
+@app.route('/delete/<todo_id>')
+def delete_todo(todo_id):
+    from bson.objectid import ObjectId
+    todos.delete_one({'_id': ObjectId(todo_id)})
+    return redirect(url_for('index'))
+
+@app.template_filter('format_date')
+def format_date(date):
+    if date:
+        return date.strftime('%d-%m-%Y %H:%M')
+    return ''
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0')
+-----------------------------------------------------------------------
+// requirements.txt
+
+flask==2.3.3
+pymongo==4.5.0
+python-dotenv==1.0.0
+------------------------------------------------------------------------
+// CREACION DE CARPETAS STATI Y TEMPLATES DENTRO DE ELLAS ESTARAN //
+// static/style.css
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #4a6fa5;
+    color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+h1 {
+    margin-bottom: 10px;
+}
+
+.form-container, .todo-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+h2 {
+    margin-bottom: 15px;
+    color: #4a6fa5;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+input, textarea {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+button {
+    padding: 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.todo-list {
+    list-style: none;
+}
+
+.todo-item {
+    background-color: #f9f9f9;
+    border-left: 4px solid #4a6fa5;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.todo-item.completed {
+    border-left-color: #4caf50;
+    background-color: #f0f7f0;
+}
+
+.todo-item.completed h3 {
+    text-decoration: line-through;
+    color: #888;
+}
+
+.todo-content h3 {
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.todo-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.btn-complete, .btn-delete {
+    padding: 5px 10px;
+    text-decoration: none;
+    border-radius: 3px;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.btn-complete {
+    background-color: #486f85;
+    color: white;
+}
+
+.btn-delete {
+    background-color: #f44336;
+    color: white;
+}
+
+.btn-complete:hover {
+    background-color: #385985;
+}
+
+.btn-delete:hover {
+    background-color: #d32f2f;
+}
+----------------------------------------------------------
+// templates/index.html
+
+!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scal>
+    <title>ToDo App con Docker & Python</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='sty>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ToDo App con Docker & Python</h1>
+            <p>Una aplicación simple de tareas usando Flask, MongoD>
+        </header>
+
+        <div class="form-container">
+            <h2>Añadir nueva tarea</h2>
+            <form action="/add" method="POST">
+<input type="text" name="todo" placeholder="Nombre >
+                <textarea name="description" placeholder="Descripci>
+                <button type="submit">Añadir</button>
+            </form>
+        </div>
+
+        <div class="todo-container">
+            <h2>Mis tareas</h2>
+
+            {% if todos %}
+                <ul class="todo-list">
+                {% for todo in todos %}
+                    <li class="todo-item {% if todo.completed %}com>
+                        <div class="todo-content">
+                            <h3>{{ todo.name }}</h3>
+{% if todo.description %}
+                                <p>{{ todo.description }}</p>
+                            {% endif %}
+                            <small>Creado: {{ todo.created_at|forma>
+                        </div>
+                        <div class="todo-actions">
+                            <a href="{{ url_for('complete_todo', to>
+                                {% if todo.completed %}Marcar como >
+                            </a>
+                            <a href="{{ url_for('delete_todo', todo>
+ </div>
+                    </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p class="no-todos">No hay tareas todavía. ¡Añade u>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
+

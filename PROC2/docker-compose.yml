@@ -1,0 +1,25 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGODB_HOST=db
+      - MONGODB_PORT=27017
+    volumes:
+      - ./app:/app
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: mongo:5
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:

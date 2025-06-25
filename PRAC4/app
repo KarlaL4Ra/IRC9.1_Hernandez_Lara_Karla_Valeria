@@ -1,0 +1,48 @@
+// ESTOS SON LOS ARCHIVOS CREADOS POR NANO QUE VAN EN LA CARPETA DE "ansible_flask_ui" //
+// ansible.cfg 
+
+inventory = inventory.ini
+host_key_checking = False
+----------------------------------
+// docker-compose.yml
+
+version: '3'
+
+services:
+  flask-ansible:
+    build: .
+    container_name: flask_ansible_ui
+    ports:
+      - "5001:5000"
+    volumes:
+      - .:/app
+    environment:
+      - ANSIBLE_HOST_KEY_CHECKING=False
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+-----------------------------------
+// Dockerfile
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y ansible openssh-client && \
+    pip install Flask
+
+COPY . .
+
+RUN chmod 600 /app/keys/id_rsa || true
+
+CMD ["python", "app/app.py"]
+-----------------------------------
+// inventory.ini
+
+[localhost]
+127.0.0.1 ansible_connection=local
+------------------------------------
+// requirements.txt
+
+Flask

@@ -1,1 +1,86 @@
+name: CI/CD Pipeline
 
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  IMAGE_NAME: mi-app-docker
+  REGISTRY: docker.io
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest requests
+
+    - name: Run basic test
+      run: |
+        python -c "from app import app; print('✅ App importada correctamente')"
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      run: |
+        docker build -t ${{ env.IMAGE_NAME }}:latest .
+        docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
+
+    - name: Test Docker image
+      run: |
+        docker run -d -p 5000:5000 --name test-container ${{ env.IMAGE_NAME }}:latest
+        sleep 10
+        curl -f http://localhost:5000/health || exit 1
+        docker stop test-container
+        docker rm test-container
+        echo "✅ Tests del contenedor pasaron correctamente"
+
+    - name: Save Docker image (opcional)
+      run: |
+        docker save ${{ env.IMAGE_NAME }}:latest | gzip > docker-image.tar.gz
+
+    - name: Upload image artifact (opcional)
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-image
+        path: docker-image.tar.gz
+        retention-days: 1
+
+  deploy-staging:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    steps:
+    - name: Deploy to Staging
+      run: |
+        echo "🚀 Desplegando a Staging..."
+        echo "Aquí irían los comandos para desplegar a staging"
+
+  deploy-production:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Deploy to Production
+      run: |
+        echo "🚀 Desplegando a Producción..."
+        echo "Aquí irían los comandos para desplegar a producción"

@@ -1,1 +1,21 @@
-
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mi App Docker</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f4; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .version { color: #666; font-size: 0.9em; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>¡Hola desde Docker! 🐳</h1>
+        <p>Esta aplicación está ejecutándose en un contenedor Docker con Flask.</p>
+        <p class="version">Versión: {{ version }}</p>
+        <div>
+            <h3>Pipeline Status: ✅ Funcionando</h3>
+        </div>
+    </div>
+</body>
+</html>

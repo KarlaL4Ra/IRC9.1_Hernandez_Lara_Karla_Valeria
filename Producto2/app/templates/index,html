@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>🫧LIMPOWER🫧</title>
+  <style>
+    body {
+      background-color: #3e3e3e;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+    nav {
+      background-color: #b73cbd;
+      padding: 20px;
+      text-align: center;
+    }
+    nav h1 {
+      margin: 0;
+      font-size: 2.5em;
+    }
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #4e4e4e;
+      border-radius: 10px;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+    input {
+      background: #fff;
+      color: #000;
+    }
+    button {
+      background-color: #b73cbd;
+      color: white;
+      cursor: pointer;
+    }
+    #resultado-container {
+      margin-top: 30px;
+      background-color: #2e2e2e;
+      padding: 20px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <h1>🫧LIMPOWER🫧</h1>
+</nav>
+
+<div class="container">
+  <p><strong>¿Para qué sirve esta herramienta?</strong></p>
+  <p>Automatiza limpieza de archivos y optimización del sistema Linux con Ansible.</p>
+
+  <h3>COPIA Y PEGA Y VE LA MAGIA ✨</h3>
+  <form action="/" method="post">
+    <input type="text" name="playbook" placeholder="limpieza_local.yml" required>
+    <button type="submit">Ejecutar limpieza</button>
+  </form>
+
+  {% if resultado %}
+    <div id="resultado-container">
+      <h3>Resultado:</h3>
+      <div id="salida">{{ resultado }}</div>
+      <form action="/descargar-pdf" method="post">
+        <input type="hidden" name="resultado" value="{{ resultado | e }}">
+        <button type="submit">Descargar resultado en PDF</button>
+      </form>
+    </div>
+  {% endif %}
+</div>
+
+</body>
+</html>

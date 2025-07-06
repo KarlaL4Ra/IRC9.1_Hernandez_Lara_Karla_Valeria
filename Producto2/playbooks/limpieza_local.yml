@@ -1,0 +1,15 @@
+- name: Limpieza básica de archivos en Debian
+  hosts: localhost
+  connection: local
+  become: true
+  tasks:
+    - name: Obtener lista de archivos y carpetas en /tmp
+      find:
+        paths: /tmp
+      register: archivos_tmp
+
+    - name: Eliminar cada archivo o carpeta encontrada
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ archivos_tmp.files }}"

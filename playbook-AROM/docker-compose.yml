@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  playbook-arom:
+    build: .
+    container_name: playbook_arom_app
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./:/app
+      - /tmp:/tmp
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    restart: unless-stopped

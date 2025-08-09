@@ -1,0 +1,122 @@
+---
+- name: Configurar switch Cisco Catalyst con seguridad básica y VLANs
+  hosts: switches
+  gather_facts: no
+  tasks:
+    - name: Verificar modelo y capacidades del switch
+      cisco.ios.ios_command:
+        commands:
+          - show version | include Model
+          - show interfaces FastEthernet0/24 capabilities | include trunk
+      register: switch_info
+      ignore_errors: yes
+
+    - name: Mostrar información del switch
+      debug:
+        msg: "{{ switch_info.stdout_lines }}"
+      when: switch_info is defined
+
+    - name: Configurar hostname y VLANs
+      cisco.ios.ios_config:
+        lines:
+          - hostname SW1-CiscoLab
+          - vlan 10
+          - name Estudiantes
+          - vlan 20
+          - name Admins
+          - enable secret Q1W2E3
+        save_when: modified
+
+    - name: Configurar línea de consola
+      cisco.ios.ios_config:
+        parents:
+          - line console 0
+        lines:
+          - password q1w2e3
+          - login
+        save_when: modified
+
+    - name: Configurar banner de login
+      ansible.netcommon.cli_command:
+        command: |
+          configure terminal
+          banner login ^C
+          ****************************************
+          * Acceso No Autorizado: CISCO LAB      *
+          ****************************************
+          ^C
+          end
+
+    - name: Asignar puertos Fa0/1-2 a VLAN 10
+      cisco.ios.ios_config:
+        parents:
+          - interface range FastEthernet0/1-2
+        lines:
+          - switchport mode access
+          - switchport access vlan 10
+          - no shutdown
+        save_when: modified
+
+    - name: Asignar puertos Fa0/3-4 a VLAN 20
+      cisco.ios.ios_config:
+        parents:
+          - interface range FastEthernet0/3-4
+        lines:
+          - switchport mode access
+          - switchport access vlan 20
+          - no shutdown
+        save_when: modified
+
+    - name: Configurar interfaz Fa0/24 como trunk (sin encapsulation)
+      cisco.ios.ios_config:
+        parents:
+          - interface FastEthernet0/24
+        lines:
+          - switchport mode trunk
+          - switchport trunk allowed vlan 1,10,20
+          - no shutdown
+        save_when: modified
+      register: trunk_result
+      ignore_errors: yes
+
+    - name: Mostrar resultado de configuración trunk
+      debug:
+        msg: "Trunk configurado correctamente en Fa0/24"
+      when: trunk_result is succeeded
+
+    - name: Configurar interfaz Fa0/24 como dynamic desirable
+      cisco.ios.ios_config:
+        parents:
+          - interface FastEthernet0/24
+        lines:
+          - switchport mode dynamic desirable
+          - switchport trunk allowed vlan 1,10,20
+          - no shutdown
+        save_when: modified
+      when: trunk_result is failed
+
+    - name: Configurar interfaz Fa0/24 usando cli_command
+      ansible.netcommon.cli_command:
+        command: |
+          configure terminal
+          interface FastEthernet0/24
+          switchport mode dynamic auto
+          switchport trunk allowed vlan 1,10,20
+          no shutdown
+          end
+      when: trunk_result is failed
+
+    - name: Verificar configuración de VLANs
+      cisco.ios.ios_command:
+        commands:
+          - show vlan brief
+          - show interfaces FastEthernet0/24 switchport
+      register: vlan_status
+
+    - name: Mostrar estado de VLANs
+      debug:
+        msg: "{{ vlan_status.stdout_lines }}"
+
+    - name: Guardar configuración
+      cisco.ios.ios_config:
+        save_when: always
